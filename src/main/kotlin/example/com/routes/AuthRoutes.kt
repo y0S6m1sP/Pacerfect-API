@@ -16,6 +16,7 @@ import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import org.apache.commons.codec.digest.DigestUtils
 
 fun Route.signUp(
     hashingService: HashingService,
@@ -27,7 +28,7 @@ fun Route.signUp(
             return@post
         }
 
-        val areFieldsBlank = request.username.isBlank() || request.password.isBlank()
+        val areFieldsBlank = request.email.isBlank() || request.password.isBlank()
         val isPasswordValid = request.password.length >= 8
         if (areFieldsBlank || !isPasswordValid) {
             call.respond(HttpStatusCode.Conflict)
@@ -36,7 +37,7 @@ fun Route.signUp(
 
         val saltedHash = hashingService.generateSaltedHash(request.password)
         val user = User(
-            username = request.username,
+            email = request.email,
             password = saltedHash.hash,
             salt = saltedHash.salt
         )
@@ -56,13 +57,13 @@ fun Route.signIn(
     tokenService: TokenService,
     tokenConfig: TokenConfig
 ) {
-    post("signin") {
+    post("login") {
         val request = call.receiveNullable<AuthRequest>() ?: kotlin.run {
             call.respond(HttpStatusCode.BadRequest)
             return@post
         }
 
-        val user = userDataSource.getUserByUsername(request.username)
+        val user = userDataSource.getUserByEmail(request.email)
         if (user == null) {
             call.respond(HttpStatusCode.Conflict, "Incorrect username or password")
             return@post
@@ -77,6 +78,7 @@ fun Route.signIn(
         )
 
         if (!isValidPassword) {
+            println("Entered hash: ${DigestUtils.sha256Hex("${user.salt}${request.password}")}, Hashed PW: ${user.password}")
             call.respond(HttpStatusCode.Conflict, "Incorrect username or password")
             return@post
         }
@@ -91,7 +93,12 @@ fun Route.signIn(
 
         call.respond(
             status = HttpStatusCode.OK,
-            message = AuthResponse(token = token)
+            message = AuthResponse(
+                userId = user.id.toString(),
+                accessToken = token,
+                refreshToken = token,
+                accessTokenExpirationTimestamp = System.currentTimeMillis() + 315360000000L
+            )
         )
     }
 }

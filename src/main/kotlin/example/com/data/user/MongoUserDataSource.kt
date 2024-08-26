@@ -9,8 +9,8 @@ class MongoUserDataSource(
 
     private val users = db.getCollection<User>()
 
-    override suspend fun getUserByUsername(username: String): User? {
-        return users.findOne(User::username eq username)
+    override suspend fun getUserByEmail(email: String): User? {
+        return users.findOne(User::email eq email)
     }
 
     override suspend fun insertUser(user: User): Boolean {
