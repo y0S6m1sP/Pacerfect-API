@@ -1,5 +1,6 @@
 package example.com
 
+import example.com.data.run.MongoRunDataSource
 import example.com.data.user.MongoUserDataSource
 import example.com.plugins.configureRouting
 import example.com.plugins.configureSecurity
@@ -19,6 +20,7 @@ fun Application.module() {
     val dbName = "rocky-api"
     val db = KMongo.createClient().coroutine.getDatabase(dbName)
     val userDataSource = MongoUserDataSource(db)
+    val runDataSource = MongoRunDataSource(db)
     val tokenService = JwtTokenService()
     val tokenConfig = TokenConfig(
         issuer = environment.config.property("jwt.domain").getString(),
@@ -30,5 +32,5 @@ fun Application.module() {
 
     configureSerialization()
     configureSecurity(tokenConfig)
-    configureRouting(userDataSource, hashingService, tokenService, tokenConfig)
+    configureRouting(userDataSource, runDataSource, hashingService, tokenService, tokenConfig)
 }

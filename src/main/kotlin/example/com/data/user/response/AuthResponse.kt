@@ -1,4 +1,4 @@
-package example.com.data.response
+package example.com.data.user.response
 
 import kotlinx.serialization.Serializable
 
