@@ -3,7 +3,7 @@ package example.com.data.run.response
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class CreateRunResponse(
+data class RunDto(
     val id: String,
     val dateTimeUtc: String,
     val durationMillis: Long,

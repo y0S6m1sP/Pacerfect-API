@@ -2,8 +2,9 @@ package example.com.routes
 
 import example.com.data.run.RunDataSource
 import example.com.data.run.request.CreateRunRequest
-import example.com.data.run.toCreateRunResponse
 import example.com.data.run.toRun
+import example.com.data.run.toRunDto
+import example.com.utils.toLocalhostImageUrl
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
@@ -50,14 +51,34 @@ fun Route.createRun(
                 part.dispose()
             }
 
-            val imageUrl = "127.0.0.1:8080/uploads/$imageName"
-            val run = createRunRequest!!.toRun(userId, imageUrl)
+            val run = createRunRequest!!.toRun(userId, imageName!!.toLocalhostImageUrl())
 
             runDataSource.insertRun(run)
 
             call.respond(
                 status = HttpStatusCode.OK,
-                run.toCreateRunResponse()
+                run.toRunDto()
+            )
+        }
+    }
+}
+
+fun Route.getRuns(
+    runDataSource: RunDataSource
+) {
+    authenticate {
+        get("runs") {
+            val principal = call.principal<JWTPrincipal>()
+            val userId = principal?.getClaim("userId", String::class) ?: kotlin.run {
+                call.respond(HttpStatusCode.Unauthorized)
+                return@get
+            }
+
+            val runs = runDataSource.getRuns(userId)
+
+            call.respond(
+                status = HttpStatusCode.OK,
+                runs.map { it.toRunDto() }
             )
         }
     }

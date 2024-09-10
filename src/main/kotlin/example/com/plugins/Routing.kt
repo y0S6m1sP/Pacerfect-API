@@ -26,5 +26,6 @@ fun Application.configureRouting(
         authenticate()
         getSecretInfo()
         createRun(runDataSource)
+        getRuns(runDataSource)
     }
 }

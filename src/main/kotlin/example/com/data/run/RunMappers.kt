@@ -1,7 +1,7 @@
 package example.com.data.run
 
 import example.com.data.run.request.CreateRunRequest
-import example.com.data.run.response.CreateRunResponse
+import example.com.data.run.response.RunDto
 import example.com.utils.toObjectId
 import java.time.Instant
 import java.time.ZoneId
@@ -22,8 +22,8 @@ fun CreateRunRequest.toRun(userId: String, mapPictureUrl: String): Run {
     )
 }
 
-fun Run.toCreateRunResponse(): CreateRunResponse {
-    return CreateRunResponse(
+fun Run.toRunDto(): RunDto {
+    return RunDto(
         id = id.toHexString(),
         dateTimeUtc = dateTimeUtc.replace(Regex("\\[.*]"), ""),
         durationMillis = durationMillis,
