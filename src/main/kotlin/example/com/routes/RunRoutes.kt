@@ -14,6 +14,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.json.Json
+import org.bson.types.ObjectId
 import java.io.File
 import java.util.*
 
@@ -80,6 +81,28 @@ fun Route.getRuns(
                 status = HttpStatusCode.OK,
                 runs.map { it.toRunDto() }
             )
+        }
+    }
+}
+
+fun Route.deleteRun(
+    runDataSource: RunDataSource
+) {
+    authenticate {
+        delete("run") {
+            val runId = call.request.queryParameters["id"] ?: kotlin.run {
+                call.respond(HttpStatusCode.BadRequest, "Missing or malformed id")
+                return@delete
+            }
+
+            val objectId = ObjectId(runId)
+            val deleted = runDataSource.deleteRun(objectId)
+
+            if (deleted) {
+                call.respond(HttpStatusCode.OK)
+            } else {
+                call.respond(HttpStatusCode.NotFound, "Run not found")
+            }
         }
     }
 }
