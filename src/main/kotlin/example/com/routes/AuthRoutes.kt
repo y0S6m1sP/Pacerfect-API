@@ -2,7 +2,9 @@ package example.com.routes
 
 import example.com.data.user.User
 import example.com.data.user.UserDataSource
+import example.com.data.user.request.AccessTokenRequest
 import example.com.data.user.request.AuthRequest
+import example.com.data.user.response.AccessTokenResponse
 import example.com.data.user.response.AuthResponse
 import example.com.security.hashing.HashingService
 import example.com.security.hashing.SaltedHash
@@ -118,5 +120,34 @@ fun Route.getSecretInfo() {
             val userId = principal?.getClaim("userId", String::class)
             call.respond(HttpStatusCode.OK, "Your userId is $userId")
         }
+    }
+}
+
+// todo check refresh token
+fun Route.accessToken(
+    tokenService: TokenService,
+    tokenConfig: TokenConfig
+) {
+    post("accessToken") {
+        val request = call.receiveNullable<AccessTokenRequest>() ?: kotlin.run {
+            call.respond(HttpStatusCode.BadRequest)
+            return@post
+        }
+
+        val token = tokenService.generate(
+            config = tokenConfig,
+            TokenClaim(
+                name = "userId",
+                value = request.userId
+            )
+        )
+
+        call.respond(
+            status = HttpStatusCode.OK,
+            message = AccessTokenResponse(
+                accessToken = token,
+                expirationTimestamp = System.currentTimeMillis() + 315360000000L
+            )
+        )
     }
 }

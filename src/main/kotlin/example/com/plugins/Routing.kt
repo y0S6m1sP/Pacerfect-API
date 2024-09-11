@@ -25,6 +25,7 @@ fun Application.configureRouting(
         signUp(hashingService, userDataSource)
         authenticate()
         getSecretInfo()
+        accessToken(tokenService, tokenConfig)
         createRun(runDataSource)
         getRuns(runDataSource)
         deleteRun(runDataSource)
